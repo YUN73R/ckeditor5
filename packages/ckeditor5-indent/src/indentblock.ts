@@ -33,6 +33,7 @@ export default class IndentBlock extends Plugin {
 		super( editor );
 
 		editor.config.define( 'indentBlock', {
+			attribute：'margin-left',
 			offset: 40,
 			unit: 'px'
 		} );
@@ -77,12 +78,14 @@ export default class IndentBlock extends Plugin {
 
 			editor.commands.add( 'indentBlock', new IndentBlockCommand( editor, new IndentUsingOffset( {
 				direction: 'forward',
+				attribute: configuration.attribute!,
 				offset: configuration.offset!,
 				unit: configuration.unit!
 			} ) ) );
 
 			editor.commands.add( 'outdentBlock', new IndentBlockCommand( editor, new IndentUsingOffset( {
 				direction: 'backward',
+				attribute: configuration.attribute!,
 				offset: configuration.offset!,
 				unit: configuration.unit!
 			} ) ) );
@@ -122,8 +125,13 @@ export default class IndentBlock extends Plugin {
 	private _setupConversionUsingOffset(): void {
 		const conversion = this.editor.conversion;
 		const locale = this.editor.locale;
-		const marginProperty = locale.contentLanguageDirection === 'rtl' ? 'margin-right' : 'margin-left';
-
+		const indentBlock = this.editor.indentBlock;
+		const marginProperty = indentBlock.attribute ? 'text-indent' : locale.contentLanguageDirection === 'rtl' ? 'margin-right' : 'margin-left';
+		/*
+  		* text-indent的值要根据段落字体大小的两倍，如14px的字体，则缩进(14 * 2)px，这在中文编辑的缩进中极为重要，而不是margin能解决的，我这里只是提供一点简单的思路或意见，望采纳并改进。
+        * The value of text dent should be based on twice the font size of the paragraph. For example, for a 14px font, the indentation should be (14 * 2) px, which is extremely important in Chinese editing indentation and cannot be solved by margin.
+        * I am only providing a simple idea or suggestion here, hoping to adopt and improve it.
+  		*/
 		conversion.for( 'upcast' ).attributeToAttribute( {
 			view: {
 				styles: {
